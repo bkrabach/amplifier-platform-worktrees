@@ -52,6 +52,24 @@ is copied into new create/attach records as `executionHost`, never derived from
 private machine data by this library. Legacy records are not rewritten. The host
 owns identity validation and guards before mutation or runtime admission.
 
+## Ecosystem map
+
+[Project overview](https://microsoft.github.io/amplifier-constellation/projects/amplifier-platform-worktrees/) ·
+[Open the map](https://github.com/bkrabach/amplifier-platform-worktrees/blob/main/docs/ecosystem-map.svg) ·
+[Map guide](https://github.com/microsoft/amplifier-constellation/blob/main/docs/ecosystem-maps.md)
+
+![Supporting package responsibilities and the surrounding ecosystem](https://raw.githubusercontent.com/bkrabach/amplifier-platform-worktrees/main/docs/ecosystem-map.svg)
+
+<details>
+<summary>The wider Constellation ecosystem</summary>
+
+![Constellation's five roles and their relationships](https://raw.githubusercontent.com/microsoft/amplifier-constellation/main/site/assets/art/building-blocks.png)
+
+</details>
+
+These maps are generated from the [canonical registry](https://github.com/microsoft/amplifier-constellation/blob/main/docs/ecosystem/registry.json).
+Update that source and refresh the local maps together; a map is not a release or compatibility claim.
+
 ## Standalone development
 
 This standalone project requires Python 3.13 or newer, Git on `PATH`,
