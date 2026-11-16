@@ -1,0 +1,81 @@
+{
+  "audience": "Developers embedding the documented Python library",
+  "citations": [
+    {
+      "path": "README.md",
+      "ref": "5c65026abb134780a84333162fd20b5bd643c78b",
+      "sha256": "dfe4090c040e22925a48e72a53d10210b91cf3a3afeed5b1e120f705d37cda65",
+      "url": "https://github.com/bkrabach/amplifier-platform-worktrees/blob/5c65026abb134780a84333162fd20b5bd643c78b/README.md"
+    },
+    {
+      "path": "PROVENANCE.json",
+      "ref": "5c65026abb134780a84333162fd20b5bd643c78b",
+      "sha256": "36ba0a4c5916fe0f168732f16de584b4a5f18bfe7e1dfbf02dd7fb9e8de4a749",
+      "url": "https://github.com/bkrabach/amplifier-platform-worktrees/blob/5c65026abb134780a84333162fd20b5bd643c78b/PROVENANCE.json"
+    },
+    {
+      "path": "pyproject.toml",
+      "ref": "5c65026abb134780a84333162fd20b5bd643c78b",
+      "sha256": "c72d0712380174f51a25bd6072c3230462277829e4c210f9b6fecc234e0270df",
+      "url": "https://github.com/bkrabach/amplifier-platform-worktrees/blob/5c65026abb134780a84333162fd20b5bd643c78b/pyproject.toml"
+    }
+  ],
+  "display_name": "Amplifier Platform Worktrees",
+  "edges": [
+    {
+      "from": "caller",
+      "relation": "uses",
+      "to": "self"
+    },
+    {
+      "from": "self",
+      "relation": "contains",
+      "to": "part-0"
+    },
+    {
+      "from": "self",
+      "relation": "contains",
+      "to": "part-1"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "self",
+      "kind": "self",
+      "label": "Amplifier Platform Worktrees",
+      "repository": "bkrabach/amplifier-platform-worktrees"
+    },
+    {
+      "id": "caller",
+      "kind": "external",
+      "label": "Calling application (Python API)"
+    },
+    {
+      "id": "part-0",
+      "kind": "internal",
+      "label": "Bounded Git operations"
+    },
+    {
+      "id": "part-1",
+      "kind": "internal",
+      "label": "Durable ownership and recovery receipts"
+    }
+  ],
+  "notes": [
+    "This is an independent open-source package hosted by bkrabach, not a Microsoft component in the Constellation family index.",
+    "The public source import preserves its Unified provenance. Source ownership, publication and consumer artifact selection are separate reviewed steps; this listing does not change an existing selection.",
+    "The library performs no fetch, push, merge, reset or forced deletion. Attaching an existing checkout does not acquire deletion ownership; uncertain mutations are not replayed automatically."
+  ],
+  "page_kind": "supporting library",
+  "purpose": "Inspect and manage Git worktrees with ownership and recovery receipts. An independent Python library.",
+  "ref": "5c65026abb134780a84333162fd20b5bd643c78b",
+  "repository": "bkrabach/amplifier-platform-worktrees",
+  "roles": [],
+  "start_cta": {
+    "label": "Read the library guide",
+    "url": "https://github.com/bkrabach/amplifier-platform-worktrees/blob/5c65026abb134780a84333162fd20b5bd643c78b/README.md#standalone-development"
+  },
+  "summary": "Bounded Git operations and durable receipts support explicit inspect, create, attach, status and remove requests. The caller chooses the operation and retains cleanup responsibility.",
+  "supports_roles": [],
+  "visibility": "public"
+}
