@@ -54,7 +54,7 @@ owns identity validation and guards before mutation or runtime admission.
 
 ## Standalone development
 
-This temporary authoring project requires Python 3.13 or newer, Git on `PATH`,
+This standalone project requires Python 3.13 or newer, Git on `PATH`,
 and `filelock>=4.2.1,<5` (installed as its sole runtime dependency). With `uv`
 available, run the existing real-Git mechanism tests from this directory:
 
@@ -69,53 +69,42 @@ required. These tests create synthetic repositories in temporary directories.
 Current packaging qualification covers Linux ARM64 with Python 3.13; it does not
 establish Windows or macOS acceptance.
 
-The package version alone does not identify published or qualified bytes; use the
-actual release source receipt and artifact hashes.
-Unified consumes an explicitly selected published artifact through
-`components/worktrees-delivery/` and `components/worktrees.source.json`, with
-Unified as the sole installed distribution owner. Author edits and publication
-do not change that selected default. Do not coinstall the standalone distribution
-into Unified or edit its generated copy by hand. Returning to an older selection
-uses ordinary app rollback; this assembly is not independent pip replacement.
+## Ownership and provenance
 
-To deliberately select verified release assets, run from the Unified root:
+This history-preserving project is prepared as the public author home at
+`bkrabach/amplifier-platform-worktrees`, with a later transfer to Microsoft planned.
+[PROVENANCE.json](PROVENANCE.json) records the original public Unified source,
+pre-move history, and exact imported runtime/test bytes. Original MIT attribution
+is preserved. The repository name does not rename the `amplifier-worktrees`
+distribution or `amplifier_worktrees` import.
 
-```sh
-python scripts/scheduling_delivery.py select --component worktrees \
-  --dist /path/to/downloaded-assets --revision FULL_SOURCE_SHA \
-  --receipt-sha256 EXACT_WORKTREES_SOURCE_SHA256
-python scripts/scheduling_delivery.py verify --component worktrees
-```
+This import changes no runtime behavior, dependency requirement, package version,
+or maintained test. Unified retains its host integration and policy. Authoring
+handoff and consumer selection are separate reviewed changes; retire Unified’s
+authored project at handoff rather than maintain two authoring copies.
 
-Normal wheel, sdist and editable builds verify the committed selection offline;
-they do not download artifacts or require the component author tree to match.
+Foundation also carries an optional `libraries/worktrees` package. It is a
+separate, divergent line: this imported API includes relocation, command locking,
+source binding and admission callbacks used by Unified. This move does not replace
+Foundation’s library or merge its API; consolidation needs a separate consumer
+review. Preserve the imported behavior when updating this repository.
 
+Use a separate environment for this distribution. Do not coinstall it with
+`amplifier-unified`, which currently owns its selected `amplifier_worktrees` files.
+This source import is not independent pip replacement inside a Unified prefix.
 
-## Component artifact delivery
+## Existing delivery and future publication
 
-The `Worktrees package` workflow qualifies a standalone wheel outside the source
-checkout with the existing real-Git tests. The current qualification is Linux
-with Python 3.13; it does not establish Windows or macOS support. The app's
-installed files, dependency graph and worktree authorization policy are unchanged.
+Unified continues to select the immutable [worktrees-v0.1.0 artifacts](https://github.com/microsoft/amplifier-unified/releases/tag/worktrees-v0.1.0)
+from their original public producer. The original source receipt, revision,
+subdirectory and hashes remain historical identities; this repository does not
+republish or relabel those artifacts. Unified’s generated `components/worktrees-delivery/`
+is selected by `components/worktrees.source.json` and verified offline during
+normal builds. Do not edit that generated copy by hand.
 
-The release owner dispatches `worktrees-release.yml` on `main` with a full merged
-source SHA in `revision`. It builds the wheel and source archive once, verifies
-their payload against that source, tests that same wheel, then publishes four
-assets under `worktrees-vX.Y.Z`: the wheel, source archive, `worktrees-source.json`
-and `SHA256SUMS`. The component release is never selected as the application
-latest release. This workflow does not reserve a version or publish on a PR.
-
-After an actual release, download all four assets from its public Unified release
-page, verify `SHA256SUMS`, and retain the source receipt and exact wheel hash.
-Install the downloaded wheel into a separate environment; no Unified, Core,
-Foundation or sibling source checkout is required. Do not coinstall it into a
-Unified installation that already owns `amplifier_worktrees`. Portability's
-standalone installation can supply this exact public wheel alongside its own
-artifact; a preparation version alone is not evidence of matching bytes or PyPI
-availability.
-
-For a failed publication, retain the original build artifact and rerun only failed
-jobs so the publisher sees those same bytes. A full rebuild is not promised to
-be byte-reproducible. An existing tag, draft or published release must match the
-selected source and assets; mismatches stop without moving tags or replacing
-assets. A completed retry validates the existing publication without rewriting it.
+The [package workflow](.github/workflows/package.yml) builds one wheel and source
+archive, then tests that wheel outside the checkout. It does not publish a release
+or change any consumer. A future publication needs an exact source/artifact
+receipt and review of Unified’s selector for this repository-root project layout;
+the existing selector identifies historical monorepo subdirectories. Source moves
+do not reserve a new version or make the original receipts invalid.
