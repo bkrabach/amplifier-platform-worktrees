@@ -108,3 +108,12 @@ or change any consumer. A future publication needs an exact source/artifact
 receipt and review of Unified’s selector for this repository-root project layout;
 the existing selector identifies historical monorepo subdirectories. Source moves
 do not reserve a new version or make the original receipts invalid.
+
+## Project guidance
+
+The original MIT license and Microsoft open-source conduct, security and support
+guidance are retained for this eventual Microsoft home. This repository is
+currently hosted under `bkrabach`; it does not claim Microsoft organization
+automation, CLA enforcement, release service connections or support coverage.
+The existing security-reporting guidance is retained; do not post vulnerabilities
+in public issues.
