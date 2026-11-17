@@ -111,7 +111,7 @@ Use a separate environment for this distribution. Do not coinstall it with
 `amplifier-unified`, which currently owns its selected `amplifier_worktrees` files.
 This source import is not independent pip replacement inside a Unified prefix.
 
-## Existing delivery and future publication
+## Existing delivery and independent publication
 
 Unified continues to select the immutable [worktrees-v0.1.0 artifacts](https://github.com/microsoft/amplifier-unified/releases/tag/worktrees-v0.1.0)
 from their original public producer. The original source receipt, revision,
@@ -120,12 +120,48 @@ republish or relabel those artifacts. Unified’s generated `components/worktree
 is selected by `components/worktrees.source.json` and verified offline during
 normal builds. Do not edit that generated copy by hand.
 
-The [package workflow](.github/workflows/package.yml) builds one wheel and source
-archive, then tests that wheel outside the checkout. It does not publish a release
-or change any consumer. A future publication needs an exact source/artifact
-receipt and review of Unified’s selector for this repository-root project layout;
-the existing selector identifies historical monorepo subdirectories. Source moves
-do not reserve a new version or make the original receipts invalid.
+The [package workflow](.github/workflows/package.yml) builds and seals one wheel
+and source archive from an exact selected commit, then tests that original wheel
+outside the checkout on Linux. Pull requests and ordinary pushes only qualify
+artifacts. A maintainer may dispatch it from `main` with a full merged `revision`
+and `publish: true` to publish the four verified assets under
+`worktrees-v<version>`: the wheel, source archive, `worktrees-source.json` and
+`SHA256SUMS`. The version comes from `pyproject.toml`; this does not reserve a tag
+or update Unified.
+
+The root-layout receipt records `component: worktrees`, this repository, the full
+commit and root tree, and the exact shipped package, test and governance inputs.
+Publication automation is bound by the root tree, not shipped as another library.
+The wheel retains `amplifier_worktrees`, its MIT license and `filelock` requirement.
+Unified must separately accept and select the original public receipt/artifacts;
+its Portability selection also binds an exact Worktrees receipt and needs a
+coordinated dependency selection. Neither publication nor identical runtime bytes
+authorize rewriting that historical dependency or bypassing its verification.
+
+For an explicitly selected merged commit, the same local controls are:
+
+```sh
+python scripts/release.py plan --revision FULL_MERGED_SHA
+python scripts/release.py seal --revision FULL_MERGED_SHA --dist /path/to/original-dist
+python scripts/release.py verify --revision FULL_MERGED_SHA --dist /path/to/original-dist
+```
+
+Build that distribution once from a clean export of the selected commit. Unmerged
+candidates may use `--qualification` for these checks, never for publication.
+The publisher refuses a changed tag, asset, source or release identity. It does
+not overwrite assets or automatically retry an uncertain operation. After a lost
+or cancelled response, inspect the retained draft and original bytes; a separate
+explicit invocation reconciles matching saved state. A hidden draft is not proof
+that no release exists.
+
+Publication controls run independently from the package tests:
+
+```sh
+controls=$(mktemp -d)
+cp -R scripts tests_release "$controls/"
+(cd "$controls" && uv run --no-project --with pytest python -m pytest -q tests_release)
+rm -r "$controls"
+```
 
 ## Project guidance
 
