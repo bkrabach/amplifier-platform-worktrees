@@ -1,2 +1,3 @@
 docs/ecosystem-map.json linguist-generated=true
 docs/ecosystem-map.svg linguist-generated=true
+scripts/github_release_readback.py text eol=lf linguist-vendored=true

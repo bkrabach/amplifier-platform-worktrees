@@ -2,7 +2,7 @@
 
 Draft/asset reconciliation is adapted from the Operations producer at
 62e4a1b62e3923e7013f7bac3d84b77b36204229. This repository owns subsequent
-Worktrees publication; historical Unified receipts and releases stay immutable.
+Worktrees publication. The readback helper is pinned to Scheduling.
 """
 from __future__ import annotations
 
@@ -16,6 +16,8 @@ import subprocess
 import tarfile
 import tomllib
 import zipfile
+
+from github_release_readback import find_release, read_release, remote_assets
 
 REPOSITORY = "bkrabach/amplifier-platform-worktrees"
 RECEIPT = "worktrees-source.json"
@@ -169,54 +171,9 @@ def api(path, *args, missing=False):
     return json.loads(result.stdout)
 
 
-def release_id(value, tag):
-    if (not isinstance(value, dict) or type(value.get("id")) is not int or value["id"] <= 0
-            or value.get("tag_name") != tag or value.get("prerelease") is not False
-            or type(value.get("draft")) is not bool or not isinstance(value.get("assets"), list)):
-        raise ValueError("Unexpected existing component release.")
-    return value["id"]
-
-
-def read_release(value, tag):
-    """A draft may be absent from tag lookup; retain the exact returned ID."""
-    identity = release_id(value, tag)
-    observed = api(f"releases/{identity}")
-    if release_id(observed, tag) != identity:
-        raise ValueError("Component release identity changed; preserve it for review.")
-    return observed
-
-
-def find_release(tag):
-    value = api("releases/tags/" + tag, missing=True)
-    if value is not None:
-        return read_release(value, tag)
-    # A tag-endpoint 404 does not establish that no draft exists. Exhaust the
-    # authenticated listing before creating anything; failures are never empty.
-    matches = []
-    for page in range(1, 101):
-        values = api(f"releases?per_page=100&page={page}")
-        if (not isinstance(values, list) or len(values) > 100
-                or any(not isinstance(item, dict) or not isinstance(item.get("tag_name"), str) for item in values)):
-            raise ValueError("Unexpected component release listing.")
-        matches.extend(item for item in values if item["tag_name"] == tag)
-        if len(matches) > 1:
-            raise ValueError("Multiple component releases match; preserve them for review.")
-        if len(values) < 100:
-            return read_release(matches[0], tag) if matches else None
-    raise ValueError("Component release listing is incomplete; nothing will be created.")
-
-
-def remote_assets(release, dist, *, complete):
-    expected = {path.name: sha(path.read_bytes()) for path in dist.iterdir()}
-    assets = release.get("assets", [])
-    names = [asset["name"] for asset in assets]
-    if len(names) != len(set(names)) or not set(names) <= set(expected) or (complete and set(names) != set(expected)):
-        raise ValueError("Existing release assets differ; nothing will be overwritten.")
-    for asset in assets:
-        raw = run("gh", "api", f"repos/{REPOSITORY}/releases/assets/{asset['id']}", "-H", "Accept: application/octet-stream")
-        if sha(raw) != expected[asset["name"]]:
-            raise ValueError("Existing release bytes differ; nothing will be overwritten.")
-    return set(names)
+def download_asset(asset_id):
+    return run("gh", "api", f"repos/{REPOSITORY}/releases/assets/{asset_id}",
+               "-H", "Accept: application/octet-stream")
 
 
 def publish(root, revision, dist):
@@ -225,11 +182,11 @@ def publish(root, revision, dist):
     ref = api("git/ref/tags/" + tag, missing=True)
     if ref is not None and (ref.get("object", {}).get("type") != "commit" or ref["object"].get("sha") != revision):
         raise ValueError("Existing component tag differs; it will not be moved.")
-    release = find_release(tag)
+    release = find_release(api, tag)
     if release:
         if not ref:
             raise ValueError("Existing release has no bound tag; preserve it for review.")
-        remote_assets(release, dist, complete=not release["draft"])
+        remote_assets(download_asset, release, dist, complete=not release["draft"])
     if not ref:
         api("git/refs", "-X", "POST", "-f", "ref=refs/tags/" + tag, "-f", "sha=" + revision)
     if release and not release["draft"]:
@@ -239,23 +196,23 @@ def publish(root, revision, dist):
                       "-f", "name=Worktrees " + receipt["version"], "-F", "draft=true", "-f", "make_latest=false",
                       "-f", "body=Managed Git worktrees with durable ownership and recovery receipts. Source: " + revision +
                       ". Consumer selection is unchanged. Do not co-install with Unified while it owns this package.")
-        release = read_release(release, tag)
+        release = read_release(api, release, tag)
     if not release["draft"]:
         raise ValueError("Component draft changed during preparation; preserve it for review.")
-    present = remote_assets(release, dist, complete=False)
+    present = remote_assets(download_asset, release, dist, complete=False)
     missing = [str(path) for path in sorted(dist.iterdir()) if path.name not in present]
     if missing:
         run("gh", "release", "upload", tag, *missing, "--repo", REPOSITORY)  # Never --clobber.
-    release = read_release(release, tag)
-    remote_assets(release, dist, complete=True)
+    release = read_release(api, release, tag)
+    remote_assets(download_asset, release, dist, complete=True)
     if not release["draft"]:
         raise ValueError("Component draft changed during preparation; preserve it for review.")
     ref = api("git/ref/tags/" + tag)
     if ref["object"].get("type") != "commit" or ref["object"].get("sha") != revision:
         raise ValueError("Component tag changed during preparation; preserve the draft.")
     api(f"releases/{release['id']}", "-X", "PATCH", "-F", "draft=false", "-f", "make_latest=false")
-    final = read_release(release, tag)
-    remote_assets(final, dist, complete=True)
+    final = read_release(api, release, tag)
+    remote_assets(download_asset, final, dist, complete=True)
     if final["draft"]:
         raise ValueError("Publication remained a draft.")
     return {"tag": tag, "status": "published", "revision": revision}
