@@ -1,5 +1,6 @@
 """Publication refuses changed source/bytes and safely resumes only its own draft."""
 import copy
+import hashlib
 import importlib.util
 import io
 import json
@@ -10,9 +11,19 @@ import zipfile
 
 import pytest
 
-SPEC = importlib.util.spec_from_file_location("worktrees_release", Path(__file__).parents[1] / "scripts/release.py")
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts/release.py"
+SPEC = importlib.util.spec_from_file_location("worktrees_release", SCRIPT)
 release = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(release)
+with pytest.MonkeyPatch.context() as script_path:
+    script_path.syspath_prepend(str(SCRIPT.parent))
+    SPEC.loader.exec_module(release)
+
+
+def test_shared_release_reader_matches_selected_scheduling_source():
+    # Refresh this one file and its pin together from the canonical source:
+    # https://github.com/bkrabach/amplifier-platform-scheduling/blob/ac670aec57743c34db7312f2635e469c1db69ab7/scripts/github_release_readback.py
+    reader = SCRIPT.with_name("github_release_readback.py")
+    assert hashlib.sha256(reader.read_bytes()).hexdigest() == "db5b05a14152b4411be8e0e5d68e186208e4ffa6b227d389d7bae004db1be7bd"
 
 
 def make_candidate(tmp_path):
@@ -368,7 +379,7 @@ def test_api_listing_failure_is_not_an_empty_success(monkeypatch):
         return subprocess.CompletedProcess(args, 1, "", "gh: unavailable (HTTP 404)" if len(calls) == 1 else "gh: unavailable (HTTP 503)")
     monkeypatch.setattr(release.subprocess, "run", failed)
     with pytest.raises(RuntimeError):
-        release.find_release("worktrees-v0.1.0")
+        release.find_release(release.api, "worktrees-v0.1.0")
     assert len(calls) == 2 and "releases?per_page=100&page=1" in calls[1][0][2]
 
 
